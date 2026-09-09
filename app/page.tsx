@@ -1,6 +1,4 @@
-import ScoreTracker from "@components/score-tracker";
 import { Button, Card } from "antd";
-import DummyScore from "./score-tracker/page";
 import Link from "next/link";
 import LogoutButton from "@components/logout-button";
 

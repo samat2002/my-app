@@ -96,7 +96,7 @@ export default function ImagesGalleryPage() {
             </Link>
             <PictureOutlined className="text-2xl text-blue-500" />
             <div>
-              <Title level={4} className="!m-0">
+              <Title level={4} className="m-0!">
                 Discord Detached Images
               </Title>
               <Text type="secondary" className="text-sm">
@@ -166,7 +166,7 @@ export default function ImagesGalleryPage() {
               >
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <Tag color="blue" className="truncate max-w-[140px]">
+                    <Tag color="blue" className="truncate max-w-35">
                       @{item.user || 'Unknown'}
                     </Tag>
                     <Text type="secondary" className="text-xs">

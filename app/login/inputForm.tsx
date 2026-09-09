@@ -72,7 +72,10 @@ export default function InputForm() {
                     <Input.Password />
                 </Form.Item>
 
-                <Form.Item label={null}>
+                <Form.Item
+                    label={null}
+                    wrapperCol={{ xs: { span: 24 }, sm: { offset: 8, span: 16 } }}
+                >
                     <Button type="primary" htmlType="submit" loading={loading} block>
                         Login
                     </Button>

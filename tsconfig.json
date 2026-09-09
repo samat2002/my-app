@@ -17,24 +17,37 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
       }
     ],
+    // "paths": {
+    //   "@/*": [
+    //     "*"
+    //   ],
+    //   "@components/*": [
+    //     "components/*"
+    //   ],
+    //   "@lib/*": [
+    //     "lib/*"
+    //   ],
+    //   "@/types/*": [
+    //     "types/*"
+    //   ]
+    // }
     "paths": {
       "@/*": [
-        "*"
+        "./*"
       ],
       "@components/*": [
-        "components/*"
+        "./components/*"
       ],
       "@lib/*": [
-        "lib/*"
+        "./lib/*"
       ],
       "@/types/*": [
-        "types/*"
+        "./types/*"
       ]
     }
   },
