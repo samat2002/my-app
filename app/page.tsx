@@ -9,17 +9,21 @@ export default function Home() {
       extra={<LogoutButton />}
     >
       <div className="flex justify-evenly gap-4">
-        <Card className="flex flex-col items-center gap-4">
-          <img src="/globe.svg" alt="Score Tracker" className="w-64 h-64 object-cover" />
-          <Button type="primary">
-            <Link href="/score-tracker">Go to Score Tracker</Link>
-          </Button>
+        <Card>
+          <div className="flex flex-col items-center gap-4">
+            <img src="/joystick.png" alt="Score Tracker" className="w-64 h-64 object-cover" />
+            <Button type="primary">
+              <Link href="/score-tracker">Go to Score Tracker</Link>
+            </Button>
+          </div>
         </Card>
-        <Card className="flex flex-col items-center gap-4">
-          <img src="/file.svg" alt="Image Gallery" className="w-64 h-64 object-cover" />
-          <Button type="primary">
-            <Link href="/images">Go to Image Gallery</Link>
-          </Button>
+        <Card>
+          <div className="flex flex-col items-center gap-4">
+            <img src="/lala.jpg" alt="Image Gallery" className="w-64 h-64 object-cover" />
+            <Button type="primary">
+              <Link href="/images">Go to Image Gallery</Link>
+            </Button>
+          </div>
         </Card>
       </div>
     </Card>
