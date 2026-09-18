@@ -132,6 +132,7 @@ export function ScoreHistoryDialog({
                         <Table
                             size="small"
                             pagination={false}
+                            scroll={{ x: 'max-content' }}
                             rowKey={(entry) => entry.name}
                             dataSource={sortedLeaderboard}
                             columns={[

@@ -6,8 +6,8 @@ const Login = () => {
     return (
         <div className="flex justify-between min-h-screen">
             {/* Left section */}
-            <div className="w-full md:w-1/2 flex justify-center">
-                <div className="flex flex-col items-center justify-center w-3/5">
+            <div className="w-full md:w-1/2 flex justify-center items-center py-8">
+                <div className="flex flex-col items-center justify-center w-full max-w-sm px-6 sm:px-8">
                     <div className="flex flex-col items-center py-2 w-full">
                         <h1 className="text-2xl font-bold">Log in</h1>
                         {/* <p className="opacity-70"></p> */}

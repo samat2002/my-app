@@ -86,6 +86,7 @@ export default function HistoryPage() {
         pagination: false,
         size: 'middle',
         rowKey: 'key',
+        scroll: { x: 'max-content' },
     }
 
     return (
@@ -97,7 +98,7 @@ export default function HistoryPage() {
                         ← Back
                     </Link>
                     <HistoryOutlined className="text-[20px] text-[#faad14]" />
-                    <Title level={5} className="!m-0">History</Title>
+                    <Title level={5} className="m-0!">History</Title>
                 </Space>
                 <Button
                     icon={<FilterOutlined />}
@@ -134,8 +135,7 @@ export default function HistoryPage() {
             {/* Date Picker Drawer */}
             <Drawer
                 title="Filter by Date"
-                placement="bottom"
-                height={200}
+                width={typeof window !== 'undefined' && window.innerWidth < 420 ? '100%' : 400}
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
                 footer={

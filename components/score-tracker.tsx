@@ -6,12 +6,14 @@ import {
     Typography, Space, Divider, Empty
 } from 'antd'
 import {
-    PlusOutlined, FlagOutlined, HistoryOutlined, TrophyOutlined
+    PlusOutlined, FlagOutlined, HistoryOutlined, TrophyOutlined,
+    ArrowLeftOutlined
 } from '@ant-design/icons'
 import { Players, GameSummary, LeaderboardEntry, FinishedPlayer } from '@/types/types'
 import PlayerCard, { PLAYER_COLORS } from './Players/playerCard'
 import { ScoreHistoryDialog } from './score-history-dialog'
 import { saveGame, fetchHistory, fetchLeaderboard } from '@lib/games'
+import Link from 'next/link'
 
 const { Title, Text } = Typography
 
@@ -121,6 +123,9 @@ function ScoreTracker() {
 
             {/* ── Header ─────────────────────────────────────────────────── */}
             <div className="sticky top-0 z-10 bg-(--background,#fff) border-b border-[#f0f0f0] py-3 px-4 flex items-center justify-between">
+                <Link href="/" className="text-gray-500 hover:text-gray-800 transition-colors shrink-0">
+                    <Button icon={<ArrowLeftOutlined />} shape="circle" />
+                </Link>
                 <Space>
                     <TrophyOutlined className="text-[20px] text-[#faad14]" />
                     <Title level={5} className="m-0!">Score Tracker</Title>
@@ -145,7 +150,7 @@ function ScoreTracker() {
             </div>
 
             {/* ── Player Grid (Mini Cards) ───────────────────────────────── */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2 w-full p-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2 w-full p-3 sm:p-5">
                 {players.map((player, i) => (
                     <div
                         key={player.id}
