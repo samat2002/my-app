@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
+import axios from 'axios';
 import { batchSaveImages, SaveImageData } from '@lib/discord-db';
 
 // POST /api/bot/scan - Scan Discord channel directly via REST API from the web app
@@ -20,10 +21,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const limit = Math.min(100, body.limit || 50);
 
-    // Fetch messages from target channel via Discord HTTP API
-    const response = await fetch(
-      `https://discord.com/api/v10/channels/${channelId}/messages?limit=${limit}`,
+    // Fetch messages from target channel via Discord HTTP API using axios
+    const response = await axios.get(
+      `https://discord.com/api/v10/channels/${channelId}/messages`,
       {
+        params: { limit },
         headers: {
           Authorization: `Bot ${token}`,
           'Content-Type': 'application/json',
@@ -31,15 +33,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return NextResponse.json(
-        { success: false, error: `Discord API Error (${response.status}): ${errorText}` },
-        { status: response.status }
-      );
-    }
-
-    const messages = await response.json();
+    const messages = response.data;
 
     if (!Array.isArray(messages)) {
       return NextResponse.json(
@@ -98,9 +92,16 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Error scanning Discord channel:', error);
+    const status = error.response?.status || 500;
+    const errorDetails = error.response?.data
+      ? typeof error.response.data === 'string'
+        ? error.response.data
+        : JSON.stringify(error.response.data)
+      : error?.message || 'Failed to scan Discord channel';
+
     return NextResponse.json(
-      { success: false, error: error?.message || 'Failed to scan Discord channel' },
-      { status: 500 }
+      { success: false, error: `Discord API Error: ${errorDetails}` },
+      { status }
     );
   }
 }

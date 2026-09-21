@@ -135,7 +135,7 @@ export default function HistoryPage() {
             {/* Date Picker Drawer */}
             <Drawer
                 title="Filter by Date"
-                width={typeof window !== 'undefined' && window.innerWidth < 420 ? '100%' : 400}
+                size={typeof window !== 'undefined' && window.innerWidth < 420 ? '100%' : 400}
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
                 footer={

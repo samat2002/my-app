@@ -21,6 +21,7 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
 
@@ -43,14 +44,13 @@ export default function ImagesGalleryPage() {
   const fetchImages = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/images');
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setImages(json.data);
+      const res = await axios.get('/api/images');
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        setImages(res.data.data);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load images:', err);
-      message.error('Failed to load images from database.');
+      message.error(err.response?.data?.error || 'Failed to load images from database.');
     } finally {
       setLoading(false);
     }
@@ -59,23 +59,20 @@ export default function ImagesGalleryPage() {
   const handleScanChannel = async () => {
     setScanning(true);
     try {
-      const res = await fetch('/api/bot/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ limit: 50 }),
-      });
-      const data = await res.json();
+      const res = await axios.post('/api/bot/scan', { limit: 50 });
+      const data = res.data;
 
-      if (data.success) {
+      if (data?.success) {
         message.success(data.message || 'Channel scan complete!');
         // Refresh the image list immediately after scan
         await fetchImages();
       } else {
-        message.error(data.error || 'Failed to scan channel.');
+        message.error(data?.error || 'Failed to scan channel.');
       }
     } catch (err: any) {
       console.error('Scan error:', err);
-      message.error(err?.message || 'Error communicating with server.');
+      const errorMsg = err.response?.data?.error || err?.message || 'Error communicating with server.';
+      message.error(errorMsg);
     } finally {
       setScanning(false);
     }
@@ -168,7 +165,7 @@ export default function ImagesGalleryPage() {
               >
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between gap-1">
-                    <Tag color="blue" className="truncate max-w-[130px] sm:max-w-[150px]">
+                    <Tag color="blue" className="truncate max-w-32.5 sm:max-w-37.5">
                       @{item.user || 'Unknown'}
                     </Tag>
                     <Text type="secondary" className="text-xs shrink-0">
