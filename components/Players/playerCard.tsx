@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import { Card, Button, Space, Typography, Tag, Input } from 'antd'
-import { PlusOutlined, MinusOutlined, ReloadOutlined, CloseOutlined } from '@ant-design/icons'
+import { PlusOutlined, MinusOutlined, ReloadOutlined, CloseOutlined, CrownOutlined } from '@ant-design/icons'
 import { PlayerCardProps } from '@/types/types'
 
 const { Text, Title } = Typography
@@ -32,6 +32,9 @@ export default function PlayerCard({
     onNameChange,
     onShowLog,
     index,
+    isManualWinner,
+    showWinnerButton,
+    onToggleWinner,
 }: PlayerCardProps) {
     const [inputValue, setInputValue] = useState("")
     const [isEditing, setIsEditing] = useState(false)
@@ -47,28 +50,49 @@ export default function PlayerCard({
         }
     }
 
-    const cardTitle = isEditing ? (
-        <Input
-            size="small"
-            value={name}
-            onChange={(e) => onNameChange(e.target.value)}
-            onBlur={() => setIsEditing(false)}
-            onPressEnter={() => setIsEditing(false)}
-            autoFocus
-            style={{ maxWidth: 160, fontWeight: 600 }}
-        />
-    ) : (
-        <Text
-            strong
-            style={{ fontSize: 16, cursor: 'pointer', color: accentColor }}
-            onClick={() => setIsEditing(true)}
-        >
-            {name || "Unnamed"}
-        </Text>
+    const cardTitle = (
+        <Space size="small">
+            {isEditing ? (
+                <Input
+                    size="small"
+                    value={name}
+                    onChange={(e) => onNameChange(e.target.value)}
+                    onBlur={() => setIsEditing(false)}
+                    onPressEnter={() => setIsEditing(false)}
+                    autoFocus
+                    style={{ maxWidth: 160, fontWeight: 600 }}
+                />
+            ) : (
+                <Text
+                    strong
+                    style={{ fontSize: 16, cursor: 'pointer', color: accentColor }}
+                    onClick={() => setIsEditing(true)}
+                >
+                    {name || "Unnamed"}
+                </Text>
+            )}
+            {isManualWinner && (
+                <Tag color="gold" icon={<CrownOutlined />} className="m-0!">
+                    Winner
+                </Tag>
+            )}
+        </Space>
     )
 
     const extra = (
         <Space>
+            {showWinnerButton && (
+                <Button
+                    size="small"
+                    type={isManualWinner ? "primary" : "default"}
+                    icon={<CrownOutlined style={{ color: isManualWinner ? '#fff' : '#faad14' }} />}
+                    onClick={onToggleWinner}
+                    title={isManualWinner ? "Player is set as winner (click to toggle)" : "Set as winner"}
+                    style={isManualWinner ? { background: '#faad14', borderColor: '#d48806' } : undefined}
+                >
+                    {isManualWinner ? "Winner" : "Set Winner"}
+                </Button>
+            )}
             <Button
                 size="small"
                 icon={<ReloadOutlined />}

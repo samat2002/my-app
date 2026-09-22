@@ -92,7 +92,7 @@ export function ScoreHistoryDialog({
                                             </Tag>
                                         }
                                     >
-                                        <Listy<Players> items={players} height={400} rowKey="id"
+                                        <Listy<Players> items={players} height={400} rowKey="name"
                                             itemRender={(player, index) => (
                                                 <div
                                                     style={player.isWinner ? { background: "#fffbe6" } : undefined}

@@ -1,3 +1,9 @@
+export interface ScoreLogEntry {
+    gameNumber: number
+    date: string
+    points: number[]
+}
+
 export interface PlayerCardProps {
     name: string
     score: number
@@ -8,6 +14,9 @@ export interface PlayerCardProps {
     onNameChange: (name: string) => void
     onShowLog: () => void
     index: number
+    isManualWinner?: boolean
+    showWinnerButton?: boolean
+    onToggleWinner?: () => void
 }
 
 export interface Players {
@@ -15,6 +24,7 @@ export interface Players {
     name: string
     score: number
     log: number[]
+    gameLogs?: ScoreLogEntry[]
     winStack?: number
     isWinner?: boolean
 }
