@@ -22,19 +22,9 @@ import {
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import axios from 'axios';
+import type { DiscordImageItem } from '@/types/types';
 
 const { Title, Text } = Typography;
-
-interface DiscordImageItem {
-  id: number;
-  user: string | null;
-  userId: string | null;
-  image: string;
-  filename: string | null;
-  channelId: string | null;
-  messageId: string | null;
-  time: string;
-}
 
 export default function ImagesGalleryPage() {
   const [images, setImages] = useState<DiscordImageItem[]>([]);

@@ -1,3 +1,5 @@
 export * from './players'
 export * from './games'
 export * from './history'
+export * from './images'
+export * from './users'

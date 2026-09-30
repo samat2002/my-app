@@ -10,14 +10,7 @@ import {
 } from 'antd';
 import { EditOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
 import { useEffect } from 'react';
-
-export interface UserRow {
-    id: number;
-    email: string;
-    name: string | null;
-    role: string;
-    createdAt: string;
-}
+import type { UserRow } from '@/types/types';
 
 export interface UserFormProps {
     open: boolean;
@@ -101,10 +94,12 @@ export default function UserFormModal({
                     initialValue="user"
                     rules={[{ required: true, message: 'Role is required' }]}
                 >
-                    <Select>
-                        <Select.Option value="user">User</Select.Option>
-                        <Select.Option value="admin">Admin</Select.Option>
-                    </Select>
+                    <Select
+                        options={[
+                            { label: 'User', value: 'user' },
+                            { label: 'Admin', value: 'admin' },
+                        ]}
+                    />
                 </Form.Item>
 
                 <Form.Item

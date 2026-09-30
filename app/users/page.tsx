@@ -10,9 +10,9 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import axios from 'axios';
-
-import UserFormModal, { type UserRow } from './form';
 import UserTable from './table';
+import type { UserRow } from '@/types/types';
+import UserFormModal from './form';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);

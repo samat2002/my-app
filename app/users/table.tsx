@@ -15,7 +15,7 @@ import {
     UserOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import type { UserRow } from './form';
+import type { UserRow } from '@/types/types';
 
 export interface UserTableProps {
     users: UserRow[];

@@ -232,9 +232,8 @@ function ScoreTracker() {
                         <div
                             key={player.id}
                             onClick={() => setActivePlayerId(player.id)}
-                            className={`border-t-4 rounded-xl py-4 px-3 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 ease-in-out hover:-translate-y-0.5 relative ${
-                                isWinnerSelected ? 'ring-2 ring-amber-400 bg-amber-50/30' : ''
-                            }`}
+                            className={`border-t-4 rounded-xl py-4 px-3 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] cursor-pointer flex flex-col items-center text-center gap-2 transition-all duration-200 ease-in-out hover:-translate-y-0.5 relative ${isWinnerSelected ? 'ring-2 ring-amber-400 bg-amber-50/30' : ''
+                                }`}
                             style={{ borderTopColor: isWinnerSelected ? '#faad14' : PLAYER_COLORS[i % PLAYER_COLORS.length] }}
                         >
                             {keepScoreMode && isWinnerSelected && (
@@ -243,8 +242,8 @@ function ScoreTracker() {
                                 </Tag>
                             )}
 
-                            <Text strong className="text-[14px]" ellipsis>{player.name || "Unnamed"}</Text>
-                            <Title level={2} className="m-0!" style={{ color: PLAYER_COLORS[i % PLAYER_COLORS.length] }}>
+                            <Text strong editable={false} className="text-[14px]:" ellipsis>{player.name || "Unnamed"}</Text>
+                            <Title level={2} editable={false} className="m-0!:" style={{ color: PLAYER_COLORS[i % PLAYER_COLORS.length] }}>
                                 {player.score}
                             </Title>
 
