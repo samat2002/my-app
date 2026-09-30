@@ -242,8 +242,8 @@ function ScoreTracker() {
                                 </Tag>
                             )}
 
-                            <Text strong editable={false} className="text-[14px]:" ellipsis>{player.name || "Unnamed"}</Text>
-                            <Title level={2} editable={false} className="m-0!:" style={{ color: PLAYER_COLORS[i % PLAYER_COLORS.length] }}>
+                            <Text strong className="text-[14px] select-none cursor-pointer" ellipsis>{player.name || "Unnamed"}</Text>
+                            <Title level={2} className="m-0! select-none cursor-pointer" style={{ color: PLAYER_COLORS[i % PLAYER_COLORS.length] }}>
                                 {player.score}
                             </Title>
 
