@@ -6,7 +6,6 @@ import {
     Button,
     Card,
     Empty,
-    Listy,
     Modal,
     Segmented,
     Space,
@@ -14,16 +13,33 @@ import {
     Table,
     Tag,
     Typography,
+    Tooltip,
 } from "antd"
 import {
     CrownOutlined,
     HistoryOutlined,
     MailOutlined,
     TrophyOutlined,
+    RightOutlined,
+    DownOutlined,
 } from "@ant-design/icons"
+import type { ColumnsType } from "antd/es/table"
 import { HistoryDialogProps, LeaderboardEntry, Players } from "@/types/types"
 
 const { Text, Title } = Typography
+
+interface GameHistoryRow {
+    key: string;
+    runNumber: number;
+    id: string;
+    date: string;
+    totalPlayer: number;
+    winner: {
+        name: string;
+        score: number;
+    };
+    players: Players[];
+}
 
 export function ScoreHistoryDialog({
     games,
@@ -38,13 +54,75 @@ export function ScoreHistoryDialog({
     const topWins = sortedLeaderboard[0]?.winStack ?? 0
     const champion = topWins > 0 ? sortedLeaderboard[0] : undefined
 
+    // Prepare table data for games history
+    const historyTableData: GameHistoryRow[] = games.map((game, index) => {
+        const winner = game.players.find((player: Players) => player.isWinner)
+            ?? game.players.reduce((best: any, player: Players) =>
+                player.score > best.score ? player : best,
+                game.players[0] || { name: 'None', score: 0 }
+            );
+
+        return {
+            key: game.id || `game-${index}`,
+            runNumber: games.length - index,
+            id: game.id,
+            date: game.date,
+            totalPlayer: game.players.length,
+            winner: {
+                name: winner?.name ?? 'Unknown',
+                score: winner?.score ?? 0,
+            },
+            players: game.players.slice().sort((a: any, b: any) => b.score - a.score),
+        };
+    });
+
+    const historyColumns: ColumnsType<GameHistoryRow> = [
+        {
+            title: "#",
+            dataIndex: "runNumber",
+            width: 105,
+            align: "center",
+            sorter: (a, b) => a.runNumber - b.runNumber,
+            render: (n: number) => <Tag color="default" className="font-mono font-medium">#{n}</Tag>,
+        },
+        {
+            title: "Date",
+            dataIndex: "date",
+            render: (date: string) => <Text className="text-gray-700 text-xs sm:text-sm">{date}</Text>,
+        },
+        {
+            title: "Total Player",
+            dataIndex: "totalPlayer",
+            align: "center",
+            sorter: (a, b) => a.totalPlayer - b.totalPlayer,
+            render: (total: number) => <Tag color="blue">{total} {total === 1 ? 'player' : 'players'}</Tag>,
+        },
+        {
+            title: "Winner",
+            dataIndex: ["winner", "name"],
+            render: (_: any, record: GameHistoryRow) => (
+                <Space size="small">
+                    <TrophyOutlined className="text-[#faad14]" />
+                    <Text strong>{record.winner.name}</Text>
+                </Space>
+            ),
+        },
+        {
+            title: "Score",
+            dataIndex: ["winner", "score"],
+            align: "right",
+            sorter: (a, b) => a.winner.score - b.winner.score,
+            render: (score: number) => <Text strong className="text-blue-600">{score} pts</Text>,
+        },
+    ];
+
     return (
         <Modal
             open={open}
             onCancel={onClose}
             footer={null}
             width="100%"
-            style={{ maxWidth: 680, top: '5vh' }}
+            style={{ maxWidth: 760, top: '5vh' }}
             title={
                 <Space>
                     {view === "history" ? <TrophyOutlined /> : <CrownOutlined />}
@@ -71,49 +149,84 @@ export function ScoreHistoryDialog({
                     games.length === 0 ? (
                         <Empty description="No games saved yet. Finish a game to see it here." />
                     ) : (
-                        <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
-                            {games.slice().map((game) => {
-                                const winner = game.players.find((player: Players) => player.isWinner)
-                                    ?? game.players.reduce((best: any, player: Players) =>
-                                        player.score > best.score ? player : best,
-                                    )
-                                const players = game.players
-                                    .slice()
-                                    .sort((a: any, b: any) => b.score - a.score)
-
-                                return (
-                                    <Card
-                                        key={game.id}
-                                        size="small"
-                                        title={<Text type="secondary">{game.date}</Text>}
-                                        extra={
-                                            <Tag icon={<TrophyOutlined />} color="gold">
-                                                {winner.name}
-                                            </Tag>
-                                        }
-                                    >
-                                        <Listy<Players> items={players} height={400} rowKey="name"
-                                            itemRender={(player, index) => (
+                        <Table<GameHistoryRow>
+                            columns={historyColumns}
+                            dataSource={historyTableData}
+                            size="small"
+                            scroll={{ x: 'max-content' }}
+                            pagination={{
+                                pageSize: 5,
+                                showSizeChanger: true,
+                                pageSizeOptions: ['5', '10', '20'],
+                                showTotal: (total) => `${total} games`,
+                            }}
+                            expandable={{
+                                expandIcon: ({ expanded, onExpand, record }) => (
+                                    <Tooltip title={expanded ? "Hide detail" : "See detail"}>
+                                        <Button
+                                            type="text"
+                                            size="small"
+                                            className="text-gray-400 hover:text-blue-600 px-1 font-mono text-xs flex items-center justify-center gap-0.5"
+                                            onClick={(e) => onExpand(record, e)}
+                                        >
+                                            {expanded ? <DownOutlined className="text-xs text-blue-500" /> : <RightOutlined className="text-xs" />}
+                                            <span className="text-[11px] text-gray-500 font-mono font-semibold">
+                                                {expanded ? "</>" : "<>"}
+                                            </span>
+                                        </Button>
+                                    </Tooltip>
+                                ),
+                                expandedRowRender: (record) => (
+                                    <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-200 my-1">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <Text type="secondary" className="text-xs font-semibold uppercase tracking-wider">
+                                                Game Detail ({record.players.length} Players)
+                                            </Text>
+                                            <Text type="secondary" className="text-xs">
+                                                {record.date}
+                                            </Text>
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            {record.players.map((player, idx) => (
                                                 <div
-                                                    style={player.isWinner ? { background: "#fffbe6" } : undefined}
+                                                    key={player.name || idx}
+                                                    className={`flex items-center justify-between p-2 rounded-lg text-xs sm:text-sm ${player.isWinner ? 'bg-amber-50/90 border border-amber-200' : 'bg-white border border-gray-100'
+                                                        }`}
                                                 >
-                                                    <div className="flex flex-row justify-between gap-2.5 items-center">
-                                                        <div className="gap-2.5">
-                                                            <Tag>{index + 1}</Tag>
-                                                            <Text strong={player.isWinner}>{player.name}</Text>
-                                                        </div>
-                                                        <Text strong>{player.score} pts</Text>
+                                                    <div className="flex items-center gap-2">
+                                                        <Tag color={player.isWinner ? "gold" : undefined}>
+                                                            #{idx + 1}
+                                                        </Tag>
+                                                        <Text strong={player.isWinner}>
+                                                            {player.name}
+                                                        </Text>
+                                                        {player.isWinner && (
+                                                            <Tag color="gold" icon={<CrownOutlined />} className="text-[10px] m-0!">
+                                                                Winner
+                                                            </Tag>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        {player.log && player.log.length > 0 && (
+                                                            <div className="hidden sm:flex items-center gap-1">
+                                                                {player.log.map((pts, i) => (
+                                                                    <Tag key={i} color={pts >= 0 ? 'green' : 'red'} className="text-[10px] m-0!">
+                                                                        {pts >= 0 ? `+${pts}` : pts}
+                                                                    </Tag>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        <Text strong className={player.isWinner ? "text-amber-600" : "text-gray-700"}>
+                                                            {player.score} pts
+                                                        </Text>
                                                     </div>
                                                 </div>
-                                            )}
-                                        />
-                                    </Card>
-                                )
-                            })}
-                            <Text type="secondary" style={{ display: "block", textAlign: "center" }}>
-                                {games.length} game{games.length !== 1 ? "s" : ""} played
-                            </Text>
-                        </Space>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ),
+                            }}
+                        />
                     )
                 ) : sortedLeaderboard.length === 0 ? (
                     <Empty description="No players yet." />
