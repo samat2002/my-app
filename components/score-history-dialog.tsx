@@ -72,7 +72,7 @@ export function ScoreHistoryDialog({
                 name: winner?.name ?? 'Unknown',
                 score: winner?.score ?? 0,
             },
-            players: game.players.slice().sort((a: any, b: any) => b.score - a.score),
+            players: game.players.slice().sort((a: any, b: any) => (b.isWinner ? 1 : 0) - (a.isWinner ? 1 : 0) || b.score - a.score),
         };
     });
 

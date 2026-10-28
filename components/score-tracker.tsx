@@ -19,6 +19,26 @@ import dayjs from 'dayjs'
 
 const { Title, Text } = Typography
 
+export interface RoundPlayerResult {
+    id: number;
+    name: string;
+    isWinner: boolean;
+    isLoser: boolean;
+    prevScore: number;
+    roundDiff: number;
+    totalScore: number;
+    diffFromWinner: number;
+}
+
+export interface GameResultSummary {
+    gameRound: number;
+    winnerName: string;
+    winnerId: number;
+    winnerTotalScore: number;
+    winnerRoundDiff: number;
+    players: RoundPlayerResult[];
+}
+
 let nextId = 1
 
 function ScoreTracker() {
@@ -31,6 +51,8 @@ function ScoreTracker() {
     const [selectedWinnerId, setSelectedWinnerId] = useState<number | null>(null)
     const [gameRound, setGameRound] = useState(1)
     const [gameStartDate, setGameStartDate] = useState(() => dayjs().format('MMM D, HH:mm'))
+    const [resultModalOpen, setResultModalOpen] = useState(false)
+    const [lastGameResult, setLastGameResult] = useState<GameResultSummary | null>(null)
 
     const [logPlayerId, setLogPlayerId] = useState<number | null>(null)
     const [historyOpen, setHistoryOpen] = useState(false)
@@ -104,8 +126,12 @@ function ScoreTracker() {
 
     // ─── Finish Game → save to Supabase ───────────────────────────────────────
     async function finishGame() {
-        const canFinish = hasScores || (keepScoreMode && selectedWinnerId !== null)
-        if (!canFinish) return
+        if (keepScoreMode && selectedWinnerId === null) {
+            messageApi.warning('Please select a winner before finishing the game!')
+            return
+        }
+
+        if (!hasScores && !keepScoreMode) return
 
         setSaving(true)
         try {
@@ -113,7 +139,7 @@ function ScoreTracker() {
             const finished: FinishedPlayer[] = players.map((p) => ({
                 name: p.name,
                 score: p.score,
-                isWinner: keepScoreMode && selectedWinnerId !== null
+                isWinner: keepScoreMode
                     ? p.id === selectedWinnerId
                     : p.score === maxScore,
             }))
@@ -125,6 +151,53 @@ function ScoreTracker() {
             gameId.current = new Date().toISOString()
 
             if (keepScoreMode) {
+                // Prepare round summary popup data (winner is strictly selectedWinnerId)
+                const winnerId = selectedWinnerId!;
+
+                const winnerPlayer = players.find(p => p.id === winnerId) || players[0];
+                const winnerRoundDiff = winnerPlayer.gameLogs?.find(g => g.gameNumber === gameRound)?.points.reduce((a, b) => a + b, 0) || 0;
+
+                // The loser is strictly 1 person: lowest score on THIS ROUND only among non-winners (can never be the winner)
+                const getRoundDiff = (p: Players) =>
+                    p.gameLogs?.find(g => g.gameNumber === gameRound)?.points.reduce((a, b) => a + b, 0) || 0;
+
+                const nonWinners = players.filter(p => p.id !== winnerId);
+                const lowestRoundScore = nonWinners.length > 0
+                    ? Math.min(...nonWinners.map(p => getRoundDiff(p)))
+                    : null;
+                const loserPlayer = nonWinners.find(p => getRoundDiff(p) === lowestRoundScore);
+                const loserId = loserPlayer?.id ?? null;
+
+                const roundResults: RoundPlayerResult[] = players.map(p => {
+                    const roundDiff = p.gameLogs?.find(g => g.gameNumber === gameRound)?.points.reduce((a, b) => a + b, 0) || 0;
+                    const prevScore = p.score - roundDiff;
+                    const totalScore = p.score;
+                    const isWinner = p.id === winnerId;
+                    const isLoser = !isWinner && p.id === loserId;
+                    const diffFromWinner = winnerPlayer.score - totalScore;
+
+                    return {
+                        id: p.id,
+                        name: p.name || 'Unnamed',
+                        isWinner,
+                        isLoser,
+                        prevScore,
+                        roundDiff,
+                        totalScore,
+                        diffFromWinner,
+                    };
+                }).sort((a, b) => (b.isWinner ? 1 : 0) - (a.isWinner ? 1 : 0) || b.totalScore - a.totalScore);
+
+                setLastGameResult({
+                    gameRound,
+                    winnerName: winnerPlayer.name || 'Unnamed',
+                    winnerId: winnerPlayer.id,
+                    winnerTotalScore: winnerPlayer.score,
+                    winnerRoundDiff,
+                    players: roundResults,
+                });
+                setResultModalOpen(true);
+
                 // Keep score mode: keep score & logs intact, advance game round
                 const nextRound = gameRound + 1
                 const nextDate = dayjs().format('MMM D, HH:mm')
@@ -207,16 +280,18 @@ function ScoreTracker() {
                         </div>
                     </Tooltip>
 
-                    {(hasScores || (keepScoreMode && selectedWinnerId !== null)) && (
-                        <Button
-                            type="primary"
-                            icon={<FlagOutlined />}
-                            loading={saving}
-                            onClick={finishGame}
-                            size="small"
-                        >
-                            <span className="hidden sm:inline">Finish</span>
-                        </Button>
+                    {(hasScores || keepScoreMode) && (
+                        <Tooltip title={keepScoreMode && selectedWinnerId === null ? "Please set a winner before finishing" : undefined}>
+                            <Button
+                                type="primary"
+                                icon={<FlagOutlined />}
+                                loading={saving}
+                                onClick={finishGame}
+                                size="small"
+                            >
+                                <span className="hidden sm:inline">Finish</span>
+                            </Button>
+                        </Tooltip>
                     )}
                     <Button icon={<HistoryOutlined />} onClick={openHistory} size="small">
                         <span className="hidden sm:inline">History</span>
@@ -376,6 +451,128 @@ function ScoreTracker() {
                 loading={historyLoading}
                 onClose={() => setHistoryOpen(false)}
             />
+
+            {/* ── Game Finish Result Modal (Keep Score Mode) ─────────── */}
+            <Modal
+                open={resultModalOpen}
+                onCancel={() => setResultModalOpen(false)}
+                footer={[
+                    <Button
+                        key="continue"
+                        type="primary"
+                        size="large"
+                        className="w-full sm:w-auto px-6 font-semibold"
+                        onClick={() => setResultModalOpen(false)}
+                    >
+                        Continue to Game {lastGameResult ? lastGameResult.gameRound + 1 : 2}
+                    </Button>
+                ]}
+                width="100%"
+                style={{ maxWidth: 640 }}
+                centered
+                destroyOnHidden
+                title={
+                    <Space>
+                        <TrophyOutlined className="text-[#faad14] text-lg" />
+                        <span className="font-bold text-base sm:text-lg">
+                            Game {lastGameResult?.gameRound} Results
+                        </span>
+                    </Space>
+                }
+            >
+                {lastGameResult && (
+                    <div className="py-2">
+                        {/* Breakdown Header & Formula guide */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2.5 px-1">
+                            <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                Player Breakdown & Diff Score
+                            </span>
+                            <span className="text-xs text-blue-600 font-mono bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                                last score + this round score = total score
+                            </span>
+                        </div>
+
+                        {/* Players list */}
+                        <div className="flex flex-col gap-2.5 max-h-[50vh] overflow-y-auto pr-0.5">
+                            {lastGameResult.players.map((p, idx) => (
+                                <div
+                                    key={p.id}
+                                    className={`p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${p.isWinner
+                                            ? 'bg-amber-50/70 border-amber-300 shadow-2xs'
+                                            : p.isLoser
+                                                ? 'bg-red-50/50 border-red-200'
+                                                : 'bg-white border-gray-200 hover:border-gray-300'
+                                        }`}
+                                >
+                                    {/* Left: Rank & Name & Status */}
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <Tag color={p.isWinner ? 'gold' : p.isLoser ? 'error' : undefined} className="font-mono font-bold m-0! shrink-0">
+                                            #{idx + 1}
+                                        </Tag>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-gray-800 text-sm truncate">
+                                                    {p.name}
+                                                </span>
+                                                {p.isWinner ? (
+                                                    <Tag color="gold" icon={<CrownOutlined />} className="text-[11px] font-semibold m-0!">
+                                                        Winner
+                                                    </Tag>
+                                                ) : p.isLoser ? (
+                                                    <Tag color="error" className="text-[11px] font-semibold m-0!">
+                                                        Loser
+                                                    </Tag>
+                                                ) : null}
+                                            </div>
+                                            {!p.isWinner && (
+                                                <div className="text-[11px] font-medium">
+                                                    {p.isLoser ? (
+                                                        <span className="text-red-500">
+                                                            Lowest score this round ({p.roundDiff >= 0 ? `+${p.roundDiff}` : p.roundDiff} pts)
+                                                        </span>
+                                                    ) : p.diffFromWinner > 0 ? (
+                                                        <span className="text-gray-500">-{p.diffFromWinner} pts behind winner</span>
+                                                    ) : p.diffFromWinner < 0 ? (
+                                                        <span className="text-amber-700">+{Math.abs(p.diffFromWinner)} pts total (Winner won round 👑)</span>
+                                                    ) : (
+                                                        <span className="text-gray-500">Tied total score with winner</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Right: Formula "lastscore + this round score = total score" */}
+                                    <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 font-mono text-xs">
+                                        <span className="text-gray-500 font-semibold" title="Last Score">
+                                            {p.prevScore}
+                                        </span>
+                                        <span className="text-gray-400 font-bold">
+                                            {p.roundDiff >= 0 ? '+' : '-'}
+                                        </span>
+                                        <span
+                                            className={`font-semibold ${p.roundDiff > 0
+                                                ? 'text-emerald-600'
+                                                : p.roundDiff < 0
+                                                    ? 'text-red-500'
+                                                    : 'text-gray-500'
+                                                }`}
+                                            title="This Round Score"
+                                        >
+                                            {Math.abs(p.roundDiff)}
+                                        </span>
+                                        <span className="text-gray-400 font-bold">=</span>
+                                        <span className="text-blue-600 font-bold text-sm" title="Total Score">
+                                            {p.totalScore}
+                                        </span>
+                                        <span className="text-gray-400 text-[10px]">pts</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </>
     )
 }
