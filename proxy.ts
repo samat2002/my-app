@@ -8,7 +8,10 @@ export async function proxy(request: NextRequest) {
   // Paths that are publicly accessible
   const isPublicPath =
     pathname === '/login' ||
-    pathname.startsWith('/api/auth');
+    pathname.startsWith('/api/auth') ||
+    pathname === '/display' ||
+    pathname.startsWith('/display') ||
+    pathname.startsWith('/api/media-jobs/public');
 
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const verifiedPayload = token ? await verifyToken(token) : null;

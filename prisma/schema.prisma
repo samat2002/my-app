@@ -41,3 +41,21 @@ model User {
 
   @@map("users")
 }
+
+model MediaJob {
+  id             Int      @id @default(autoincrement())
+  title          String?
+  type           String   // 'video' | 'image'
+  mediaUrl       String   @db.Text
+  thumbnailUrl   String?  @db.Text
+  cutDuration    Float?   // Cut video duration in seconds (<= 60s)
+  displayMinutes Int      @default(30) // Duration in seconds (10, 15, 30, 45, 60, 90, 120s)
+  status         String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED, CANCELLED
+  submittedBy    String?
+  approvedBy     String?
+  playOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("media_jobs")
+}
